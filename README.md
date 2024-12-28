@@ -3,12 +3,12 @@ Kubernetes multiple pods demo application to understand kubernetes internal comm
 
 ## Application Details
 
-1. The demo application backend is using nodeJS backend and frontend is using ReactJS. This a just demo application with more emphasis is laid on kubernetes and API communication. Components like users, tasks, authentication and frontend application are small dummy components just to show the API's communication within k8s landscape.
+1. The demo application backend is using Node.js backend and frontend is using ReactJS. This just a demo application with more emphasis laid on kubernetes and API communication. Components like users, tasks, authentication and frontend application are small dummy components just to show the API's communication within k8s landscape.
    
-2. This project contains dockerfile which explains how a nodeJS/ReactJS application are containerized using Docker. The docker images are available in my public docker repository [Kreetanshu](https://hub.docker.com/repositories/kreetanshu) 
+2. This project contains dockerfiles which explains how a Node.js/React applications are containerized using Docker. The docker images are available in my public docker repository [Kreetanshu](https://hub.docker.com/repositories/kreetanshu) 
 3. The Kubernetes service and deployment files are stored in this [project](/kubernetes/). 
 4. No data persistence: Database is not used here,neither Kubernetes persistent volume are created. Hence data is stored only as long as pods are alive.
-5. This project explains the networking concept and communication flow between different components of application. How pod-to-pod/service-to-service or service-to-external-cleints communication is achieved. 
+5. This project explains the networking concept and communication flow between different components of application. How pod-to-pod/service-to-service or service-to-external-clients communication is achieved. 
 
 ## Kubernetes networks and communication
 
@@ -16,7 +16,7 @@ In the below diagram there are 4 kubernetes services in action. Users, tasks and
 
 ![Service Communication](img/k8sServices.png)
 
-The application is tested via deploying the kubernetes [yamls](/frontend/) on a single-node [minikube](https://minikube.sigs.k8s.io/docs/) cluster. Though the other Kubernetes distro should also support this deployment.
+The application is tested via deploying the kubernetes [yamls](/frontend/) on a single-node [minikube](https://minikube.sigs.k8s.io/docs/) cluster. Though the other Kubernetes distributions should also support this deployment.
 
 The demo application consists of four basic components. These four components are categorised as four different pods/services in k8s deployment.
 
@@ -46,10 +46,12 @@ Response Body
   "token": "abc"
 }
 ```
-**2. Tasks service**: This is backend mircroservice which stores and retrives tasks from a temporary file based storage mounted within the pod. Task APIs makes a call to `authorization-service` using the authorization in header to authenticate the user. Upon successful authentication it saves or return any stored tasks.
+**2. Tasks service**: This is a backend microservice which stores and retrieves tasks from a temporary file based storage mounted within the pod. 
+
+Task APIs make a call to `authorization-service` using the authorization in the header to authenticate the user. Upon successful authentication it saves or returns any stored tasks.
 
 Two APIs are available here: GET and POST /tasks. Frontend application also uses these calls to fetch and create tasks.
-First task need to be created using POST call, again run `minikube service tasks-service` to forward the calls to the local machine. 
+As a first step, a task need to be created using POST call. Run `minikube service tasks-service` to forward the calls to the local machine. 
 
 Grab the port number being used for task-service and construct the POST API call like below.
 
@@ -78,12 +80,12 @@ Response Body
 ```
 Once tasks are created they can be fetched using GET call e.g. http://127.0.0.1:49219/tasks with Authorization token set in header.
 
-**3.Frontend Service**: This is a React-js based front-end application which has user-interface for tasks service. This microservice allows users to view the created tasks and also users can create task via UI. This frontend application also needs to authenticate via auth-service before rendering stored tasks results. Frontend service is also a `LoadBalancer` type service which allows connection from external client like Postman or a Web-browser.
+**3.Frontend Service**: This is a React-js based front-end application which has a user-interface for tasks service. This microservice allows users to view the created tasks and also users can create tasks via UI. This frontend application also needs to authenticate via auth-service before rendering stored tasks results. Frontend service is also a `LoadBalancer` type service which allows connection from external clients like Postman or a Web-browser.
 
 Again run the command `minikube service frontend-service` and grab the IP and port number user for frontend application.
-There are two APIs call GET and POST tasks are avaible here.
+There are two APIs call GET and POST tasks are available here.
 
-For frontend calls /api needs to be added before /tasks, this /api is a short route path for the task service call. This forwards the request to task API call which in turn makes a call first to the authentication service and then connects to tasks APIs. This is used as reverse-proxy for the frontend application as defined in nginx [configuration](/frontend/conf/nginx.conf)
+For frontend calls /api needs to be added before /tasks, this /api is a short route path for the task service call. This forwards the request to the task API call which in turn makes a call first to the authentication service and then connects to tasks APIs. This is used as reverse-proxy for the frontend application as defined in nginx [configuration](/frontend/conf/nginx.conf)
 
 POST call will be like: http://127.0.0.1:57645/api/tasks
 
@@ -113,7 +115,7 @@ Once tasks are created, tasks can be viewed in frontend UI, `minikube service fr
 
 From API client as well a GET call http://127.0.0.1:57645/api/tasks with Authorization token in header can be made to fetch the same results.
 
-**4.Authentication Service**: This is a backend microservice, which is restricted to outside world. Tasks, Users and Frontend APIs authenticate using the auth-service. The auth-service is of type `ClusterIP` this upon successful authentication grants a Authorization token which needs to be passed in header of other API calls which is accessible from outside or within the k8s cluster.
+**4.Authentication Service**: This is a backend microservice, which is restricted to the outside world. Tasks, Users and Frontend APIs authenticate using the auth-service. The auth-service is of type `ClusterIP` this upon successful authentication grants a Authorization token which needs to be passed in the header of other API calls which is accessible from outside or within the k8s cluster.
 
 **Note** These all four applications are dummy applications as more emphasis here is on Kubernetes concepts than the app itself. For more details refer to the source [code](https://github.com/kreetanshu/kubernetes-multi-pods-app) under each app folder
 
@@ -130,7 +132,23 @@ git clone https://github.com/kreetanshu/kubernetes-multi-pods-app
 cd kubernetes
 kubectl apply -f .
 ```
-5. In-order to access the UI, forward the frontend application
+5. Check pods and service status
+```bash
+kubectl get pods
+```
+All pods should be up and running
+```bash
+kubectl get svc
+```
+6. Using minikube forward the tasks service on your local machine
+```bash
+minikube service tasks-service
+```
+7. Grab the IP and port number and run the POST API call to create a task. Refer **Tasks service** section on this page.
+8. In-order to access the UI, now forward the frontend-service. You can view the created tasks on web-browser
+9. You can run other API calls as explained on this page, in order to grab IP and port you can run `minikube service serviceName`.
+
+
 
 
 
